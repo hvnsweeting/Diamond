@@ -9,8 +9,12 @@ net.netfilter.nf_conntrack_count_max
  * nf_conntrack module
 
 """
+import subprocess
 
 import diamond.collector
+
+
+nf_cntrk_mod = 'nf_conntrack_ipv4' in subprocess.check_output('lsmod').split()
 
 
 class ConnTrackCollector(diamond.collector.Collector):
@@ -45,6 +49,10 @@ class ConnTrackCollector(diamond.collector.Collector):
         """
         Collect metrics
         """
+        if not nf_cntrk_mod:
+            self.log.error('nf_conntrack_ipv4 kernel module is not loaded')
+            return
+
         collected = {}
         files = []
 
