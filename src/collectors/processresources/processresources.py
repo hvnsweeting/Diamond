@@ -14,7 +14,6 @@ Example config file ProcessResourcesCollector.conf
 
 ```
 enabled=True
-unit=B
 [process]
 [[postgres]]
 exe=^\/usr\/lib\/postgresql\/+d.+d\/bin\/postgres$
@@ -126,7 +125,6 @@ class ProcessResourcesCollector(diamond.collector.Collector):
         config_help = super(ProcessResourcesCollector,
                             self).get_default_config_help()
         config_help.update({
-            'unit': 'The unit in which memory data is collected.',
             'process': ("A subcategory of settings inside of which each "
                         "collected process has it's configuration"),
         })
@@ -136,12 +134,10 @@ class ProcessResourcesCollector(diamond.collector.Collector):
         """
         Default settings are:
             path: 'process'
-            unit: 'B'
         """
         config = super(ProcessResourcesCollector, self).get_default_config()
         config.update({
             'path': 'process',
-            'unit': 'B',
             'process': {},
         })
         return config
