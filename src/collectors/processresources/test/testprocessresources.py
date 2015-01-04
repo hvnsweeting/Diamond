@@ -49,6 +49,12 @@ class TestProcessResourcesCollector(CollectorTestCase):
     SELFMON_PID = 10001  # used for selfmonitoring
 
     def setUp(self):
+        import psutil
+        self.this_process = psutil.Process(os.getpid())
+
+        self.TEST_CONFIG['process']['this_process'] = {
+                'cmdline': self.this_process.cmdline()
+        }
         config = get_collector_config('ProcessResourcesCollector',
                                       self.TEST_CONFIG)
 
@@ -197,13 +203,15 @@ class TestProcessResourcesCollector(CollectorTestCase):
                     'memory_percent': 0.03254831000922748,
                     'memory_info': meminfo(rss=self.rss, vms=self.vms)}
 
-        process_iter_mock = (ProcessMock(
+        process_iter_mock = [ProcessMock(
             pid=x['pid'],
             name=x['name'],
             rss=x['rss'],
             vms=x['vms'],
             exe=x['exe'])
-            for x in process_info_list)
+            for x in process_info_list]
+        process_iter_mock.append(self.this_process)
+        process_iter_mock = iter(process_iter_mock)
 
         getpid_mock.return_value = self.SELFMON_PID
 
@@ -219,6 +227,9 @@ class TestProcessResourcesCollector(CollectorTestCase):
         self.assertPublished(publish_mock, 'barexe.memory_info_ex.rss', 3)
         self.assertPublished(publish_mock,
                              'diamond-selfmon.memory_info_ex.rss', 1234)
+        self.assertPublished(publish_mock,
+                             'this_process.memory_info_ex.rss',
+                             self.this_process.memory_info_ex().rss)
 
 ################################################################################
 if __name__ == "__main__":
