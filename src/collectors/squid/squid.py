@@ -42,6 +42,11 @@ class SquidCollector(diamond.collector.Collector):
                 'port': int(port)
             }
 
+        if self.config['metric_type'].lower() == 'gauge':
+            self.publish_func = self.publish_gauge
+        else:
+            self.publish_func = self.publish_counter
+
     def get_default_config_help(self):
         config_help = super(SquidCollector, self).get_default_config_help()
         config_help.update({
@@ -58,6 +63,7 @@ class SquidCollector(diamond.collector.Collector):
         config.update({
             'hosts': ['localhost:3128'],
             'path': 'squid',
+            'metric_type': 'counter',
         })
         return config
 
@@ -97,6 +103,7 @@ class SquidCollector(diamond.collector.Collector):
                 for data in fulldata:
                     matches = self.stat_pattern.match(data)
                     if matches:
-                        self.publish_counter("%s.%s" % (nickname,
-                                                        matches.group(1)),
-                                             float(matches.group(2)))
+                        self.publish_func("%s.%s" % (nickname,
+                                                     matches.group(1)),
+                                          float(matches.group(2))
+                                          )
